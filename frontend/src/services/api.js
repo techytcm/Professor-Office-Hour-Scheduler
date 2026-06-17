@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // MOCK MODE: Set to false when you connect to real backend
-const MOCK_MODE = true
+const MOCK_MODE = false
 
 // Create a mock API that simulates backend responses
 const mockApi = {
