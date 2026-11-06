@@ -16,7 +16,8 @@ class OfficeHour(Base):
     
     # Relationships
     professor = relationship("User", back_populates="office_hours")
-    bookings = relationship("Booking", back_populates="office_hour")
+    # Deleting a slot deletes its bookings (booking.office_hour_id is NOT NULL)
+    bookings = relationship("Booking", back_populates="office_hour", cascade="all, delete-orphan")
     
     @property
     def duration_minutes(self):
@@ -24,4 +25,5 @@ class OfficeHour(Base):
     
     @property
     def current_bookings(self):
-        return len([b for b in self.bookings if b.status != "cancelled"])
+        from app.models.booking import BookingStatus
+        return sum(1 for b in self.bookings if b.status != BookingStatus.CANCELLED)

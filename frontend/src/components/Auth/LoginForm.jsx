@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
+import { getErrorMessage } from '../../services/api.js'
 import { validateEmail } from '../../utils/validators.js'
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react'
 
 const LoginForm = () => {
-  const { register, handleSubmit, formState: { errors } } = useForm()
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm()
   const { login } = useAuth()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
@@ -18,7 +19,7 @@ const LoginForm = () => {
       const user = await login(data)
       navigate(user.role === 'professor' ? '/professor/dashboard' : '/student/dashboard')
     } catch (err) {
-      setSubmitError(err.message || 'Invalid credentials')
+      setSubmitError(getErrorMessage(err, 'Invalid credentials'))
     }
   }
 
@@ -71,7 +72,7 @@ const LoginForm = () => {
         {errors.password && <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>}
       </div>
 
-      <button type="submit" className="btn-primary w-full">
+      <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:opacity-60">
         Sign In
       </button>
     </form>

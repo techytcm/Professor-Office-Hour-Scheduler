@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth.js'
+import { getErrorMessage } from '../../services/api.js'
 import { validateEmail } from '../../utils/validators.js'
 import { Eye, EyeOff, Mail, Lock, User, GraduationCap } from 'lucide-react'
 
 const RegisterForm = () => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm()
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm()
   const { register: registerUser } = useAuth()
   const navigate = useNavigate()
   const [showPassword, setShowPassword] = useState(false)
@@ -15,10 +16,13 @@ const RegisterForm = () => {
   const onSubmit = async (data) => {
     try {
       setSubmitError('')
-      const user = await registerUser(data)
+      // confirm_password is only for the form; department only applies to professors
+      const { confirm_password, department, ...payload } = data
+      if (data.role === 'professor' && department?.trim()) payload.department = department.trim()
+      const user = await registerUser(payload)
       navigate(user.role === 'professor' ? '/professor/dashboard' : '/student/dashboard')
     } catch (err) {
-      setSubmitError(err.message || 'Registration failed')
+      setSubmitError(getErrorMessage(err, 'Registration failed'))
     }
   }
 
@@ -88,6 +92,17 @@ const RegisterForm = () => {
         {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
       </div>
 
+      {watch('role') === 'professor' && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+          <input
+            {...register('department')}
+            className="input-field"
+            placeholder="Computer Science"
+          />
+        </div>
+      )}
+
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
         <div className="relative">
@@ -126,7 +141,7 @@ const RegisterForm = () => {
         {errors.confirm_password && <p className="mt-1 text-sm text-red-600">{errors.confirm_password.message}</p>}
       </div>
 
-      <button type="submit" className="btn-primary w-full">
+      <button type="submit" disabled={isSubmitting} className="btn-primary w-full disabled:opacity-60">
         Create Account
       </button>
     </form>

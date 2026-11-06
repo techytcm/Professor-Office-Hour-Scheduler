@@ -4,7 +4,7 @@ import { GraduationCap } from 'lucide-react'
 
 const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 -mt-[73px] -mb-[57px]">
+    <div className="min-h-[calc(100vh-130px)] flex items-center justify-center py-12">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">

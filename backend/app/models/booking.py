@@ -34,6 +34,10 @@ class Booking(Base):
         return self.office_hour.professor.full_name if self.office_hour and self.office_hour.professor else None
     
     @property
+    def student_name(self):
+        return self.student.full_name if self.student else None
+
+    @property
     def professor_id(self):
         return self.office_hour.professor_id if self.office_hour else None
     

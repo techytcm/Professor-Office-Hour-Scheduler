@@ -1,10 +1,19 @@
 import { useState } from 'react'
 import { useBookings } from '../../hooks/useBookings.js'
 import BookingCard from '../../components/Booking/BookingCard.jsx'
-import { BookOpen, Calendar, Clock } from 'lucide-react'
+import { BookOpen } from 'lucide-react'
 
 const MyBookings = () => {
-  const { bookings, loading, cancelBooking } = useBookings()
+  const { bookings, loading, error, cancelBooking } = useBookings()
+
+  const handleCancel = async (bookingId) => {
+    if (!window.confirm('Cancel this booking?')) return
+    try {
+      await cancelBooking(bookingId)
+    } catch (err) {
+      window.alert(err.message)
+    }
+  }
   const [filter, setFilter] = useState('all') // all, upcoming, past, cancelled
 
   const filteredBookings = bookings.filter(booking => {
@@ -53,6 +62,8 @@ const MyBookings = () => {
         <div className="flex justify-center py-12">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
         </div>
+      ) : error ? (
+        <div className="card text-center py-12 text-red-600">{error}</div>
       ) : filteredBookings.length === 0 ? (
         <div className="card text-center py-12">
           <BookOpen size={48} className="mx-auto text-gray-300 mb-4" />
@@ -64,7 +75,7 @@ const MyBookings = () => {
             <BookingCard 
               key={booking.id} 
               booking={booking} 
-              onCancel={cancelBooking}
+              onCancel={handleCancel}
             />
           ))}
         </div>

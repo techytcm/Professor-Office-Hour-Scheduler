@@ -1,471 +1,322 @@
 # 🎓 Professor Office Hour Scheduler
 
-A full-stack web application that allows students to book office hours with professors in a simple, organized, and conflict-free way.
+A full-stack app where professors publish office-hour slots and students book them.
 
-![Tech Stack](https://img.shields.io/badge/Frontend-React%20%2B%20Tailwind-blue)
-![Tech Stack](https://img.shields.io/badge/Backend-FastAPI%20%2B%20Python-green)
-![Tech Stack](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20SQLite-blue)
+![Frontend](https://img.shields.io/badge/Frontend-React%2018%20%2B%20Vite%20%2B%20Tailwind-blue)
+![Backend](https://img.shields.io/badge/Backend-FastAPI%20%2B%20SQLAlchemy-green)
+![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20SQLite-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
----
-
-## 🏗️ System Architecture
-
-```text
-┌──────────────┐       FastAPI Backend      ┌──────────────┐
-│   Frontend   │  ←──────────────────────→  │   Backend    │
-│ React + Vite │     JWT Authentication     │   FastAPI    │
-└──────────────┘                            └──────────────┘
-         │
-         ▼
-┌─────────────────────────────┐
-│ PostgreSQL / SQLite Database│
-│      SQLAlchemy ORM         │
-└─────────────────────────────┘
-```
+**Contents:** [Quick start](#-quick-start) · [Configuration](#-configuration) · [Project layout](#-project-layout) · [How it works](#-how-it-works) · [API reference](#-api-reference) · [Data model](#-data-model) · [Development guide](#-development-guide) · [Troubleshooting](#-troubleshooting)
 
 ---
 
 ## ✨ Features
 
-### 👨‍🎓 Student Features
+**Students**
+- Register / log in
+- Browse professors and see their upcoming open slots
+- Book a slot with an optional note, and cancel it later
+- See booking history (upcoming, past, cancelled)
 
-- Register and login securely
-- Browse available professors
-- View real-time office hour availability
-- Book appointments without scheduling conflicts
-- Cancel upcoming appointments
-- Access booking history
+**Professors**
+- Create slots with a location, capacity (1–50 students), and notes
+- Weekly calendar overview and booking stats on the dashboard
+- See who booked which slot, and cancel a student's booking
+- Delete slots
 
-### 👨‍🏫 Professor Features
-
-- Create office hour slots
-- Manage availability schedules
-- Set office location and appointment duration
-- View student booking requests
-- Manage and cancel appointments
-
-### 🔐 System Features
-
-- JWT Authentication
-- Role-Based Access Control (RBAC)
-- Double-booking prevention
-- Time conflict validation
-- Responsive design
-- Secure password hashing
-- RESTful API architecture
-- Dark Mode support
+**Rules the API enforces**
+- A professor's slots can't overlap
+- Slots must start in the future and end after they start
+- A slot can't be booked past its capacity, after it starts, or twice by the same student
+- Students cancel only their own bookings; professors only bookings on their own slots
 
 ---
 
-## 🧰 Tech Stack
+## 🚀 Quick start
 
-| Layer | Technology |
-|---------|------------|
-| Frontend | React 18, Tailwind CSS, Axios, React Router, Lucide Icons |
-| Backend | FastAPI |
-| Database | PostgreSQL / SQLite |
-| ORM | SQLAlchemy |
-| Validation | Pydantic v2 |
-| Authentication | JWT, bcrypt |
-| Development Tools | Vite, Uvicorn, pyenv |
+### Prerequisites
 
----
+| Tool | Version | Notes |
+|------|---------|-------|
+| Python | 3.11 or 3.12 | The pinned `pydantic-core` has no prebuilt wheels for 3.13+ |
+| Node.js | 18+ | npm comes with it |
+| PostgreSQL | any recent | Optional: SQLite works for local development |
 
-## 📁 Project Structure
-
-```text
-Professor-Office-Hour-Scheduler/
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── hooks/
-│   │   ├── services/
-│   │   ├── context/
-│   │   └── utils/
-│   │
-│   ├── public/
-│   ├── package.json
-│   ├── vite.config.js
-│   └── tailwind.config.js
-│
-├── backend/
-│   ├── app/
-│   │   ├── main.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── dependencies.py
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── routers/
-│   │   └── utils/
-│   │
-│   ├── requirements.txt
-│   └── .env
-│
-└── README.md
-```
-
----
-
-## 🚀 Quick Start
-
-### 📋 Prerequisites
-
-- Node.js 18+
-- npm
-- Python 3.11 – 3.13
-- PostgreSQL (optional)
-- SQLite (development supported)
-
----
-
-## 1️⃣ Clone the Repository
+### 1. Clone
 
 ```bash
 git clone https://github.com/techytcm/Professor-Office-Hour-Scheduler.git
-
 cd Professor-Office-Hour-Scheduler
 ```
 
----
-
-## ⚙️ Backend Setup
+### 2. Backend (terminal 1)
 
 ```bash
 cd backend
-
 python -m venv venv
-```
-
-### Activate Virtual Environment
-
-#### Linux / macOS
-
-```bash
-source venv/bin/activate
-```
-
-#### Windows
-
-```bash
-venv\Scripts\activate
-```
-
-### Install Dependencies
-
-```bash
+source venv/bin/activate          # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-```
-
-### Configure Environment
-
-```bash
-cp .env.example .env
-```
-
-Edit `.env` with your database credentials and secret key.
-
-### Start FastAPI Server
-
-```bash
+cp .env.example .env              # then edit DATABASE_URL and SECRET_KEY
 uvicorn app.main:app --reload --port 8000
 ```
 
-Backend runs at:
+> **Fastest setup:** in `.env`, switch `DATABASE_URL` to the SQLite line. No database server needed.
+> For PostgreSQL, create the database first: `createdb office_hours`.
 
-```text
-http://localhost:8000
-```
+Tables are created automatically on startup.
 
-Swagger Documentation:
+- API: http://localhost:8000
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
-```text
-http://localhost:8000/docs
-```
-
-ReDoc Documentation:
-
-```text
-http://localhost:8000/redoc
-```
-
----
-
-## 🎨 Frontend Setup
+### 3. Frontend (terminal 2)
 
 ```bash
 cd frontend
-
 npm install
-
 npm run dev
 ```
 
-Frontend runs at:
-
-```text
-http://localhost:3000
-```
+Open http://localhost:3000, register one **professor** and one **student** account (two browsers or a private window), create a slot as the professor, and book it as the student.
 
 ---
 
 ## 🔧 Configuration
 
-### Backend Environment Variables
+### Backend: `backend/.env`
 
-```env
-DATABASE_URL=postgresql://user:password@localhost:5432/office_hours
+Read by [app/config.py](backend/app/config.py). Every value has a default, so `.env` is only needed to override them.
 
-# SQLite alternative
-# DATABASE_URL=sqlite:///./office_hours.db
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql://postgres:password@localhost:5432/office_hours` | Any SQLAlchemy URL, e.g. `sqlite:///./office_hours.db` |
+| `SECRET_KEY` | placeholder | Signs JWTs. **Change it** (`python -c "import secrets; print(secrets.token_hex(32))"`) |
+| `ALGORITHM` | `HS256` | JWT signing algorithm |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | `60` | Login lifetime; the user is sent back to `/login` when it expires |
 
-SECRET_KEY=your-super-secret-key
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
-```
+### Frontend: `frontend/.env` (optional)
 
-### Frontend Environment Variables
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `VITE_API_URL` | `http://localhost:8000/api` | Base URL for API calls |
 
-Create `frontend/.env`
+### Ports and CORS
 
-```env
-VITE_API_URL=http://localhost:8000/api
-```
+The frontend dev server runs on **3000** and the API on **8000**. The backend only allows CORS from `http://localhost:3000` (see [app/main.py](backend/app/main.py)). If you change the frontend port or deploy elsewhere, update `allow_origins`. Alternatively, set `VITE_API_URL=/api` to use the dev-server proxy in [vite.config.js](frontend/vite.config.js), which avoids CORS entirely.
 
 ---
 
-## 🔌 API Endpoints
+## 📁 Project layout
+
+```text
+backend/
+├── app/
+│   ├── main.py            # FastAPI app, CORS, router registration, table creation
+│   ├── config.py          # Settings loaded from .env
+│   ├── database.py        # Engine, session, get_db dependency
+│   ├── dependencies.py    # get_current_user, require_student, require_professor
+│   ├── models/            # SQLAlchemy tables: User, OfficeHour, Booking
+│   ├── schemas/           # Pydantic request/response models
+│   ├── routers/           # auth.py, professors.py, bookings.py
+│   └── utils/
+│       ├── security.py        # bcrypt hashing, JWT encode/decode
+│       └── datetime_utils.py  # UTC helpers
+├── requirements.txt
+└── .env.example
+
+frontend/src/
+├── main.jsx               # Router + AuthProvider
+├── App.jsx                # All routes
+├── context/AuthContext.jsx  # Current user, login/register/logout
+├── services/              # Axios client (api.js) + one module per API area
+├── hooks/                 # useAuth, useBookings, useOfficeHours
+├── pages/                 # Auth/, Student/, Professor/ screens
+├── components/            # Auth/, Booking/, Layout/, Professor/ building blocks
+└── utils/                 # Date formatting, form validators
+```
+
+### Frontend routes
+
+| Path | Role | Page |
+|------|------|------|
+| `/login`, `/register` | public | Auth forms |
+| `/student/dashboard` | student | Upcoming bookings + stats |
+| `/student/professors` | student | Professor directory |
+| `/student/book/:professorId` | student | Pick a slot and book it |
+| `/student/bookings` | student | Booking history with filters |
+| `/professor/dashboard` | professor | Stats, weekly calendar, today's bookings |
+| `/professor/slots` | professor | Create / delete slots |
+| `/professor/bookings` | professor | All bookings on your slots |
+
+Role checks are done by [ProtectedRoute.jsx](frontend/src/components/Auth/ProtectedRoute.jsx). The backend checks roles independently, so the UI checks are a convenience, not security.
+
+---
+
+## 🧠 How it works
 
 ### Authentication
 
-| Method | Endpoint | Auth | Description |
-|----------|----------|------|-------------|
-| POST | `/api/auth/register` | ❌ | Create account |
-| POST | `/api/auth/login` | ❌ | Login and receive JWT |
-| GET | `/api/auth/profile` | ✅ | Get current user |
+1. `POST /api/auth/register` or `/api/auth/login` returns `{ token, user }`.
+2. The frontend stores both in `localStorage` ([AuthContext.jsx](frontend/src/context/AuthContext.jsx)).
+3. An Axios interceptor in [api.js](frontend/src/services/api.js) adds `Authorization: Bearer <token>` to every request.
+4. On the backend, `get_current_user` decodes the JWT (`sub` = email) and loads the user; `require_student` / `require_professor` add role checks.
+5. Any `401` (outside the auth endpoints) clears storage and redirects to `/login`.
+
+### Times and time zones
+
+All times are **stored as naive UTC** in the database and **returned with a `Z` suffix** (e.g. `2026-11-10T14:00:00Z`).
+
+- The slot form converts the professor's local input to UTC with `toISOString()` before sending.
+- The API accepts timezone-aware ISO strings and converts them to UTC. A naive string is assumed to already be UTC.
+- The browser converts back to local time for display (`date-fns`).
+
+When adding new datetime fields, use `to_naive_utc` on input and the `UTCDatetime` type in response schemas ([schemas/office_hour.py](backend/app/schemas/office_hour.py)).
+
+### Slot capacity
+
+`OfficeHour.is_booked` means "full". It is recomputed whenever a booking is created or cancelled (`current_bookings >= max_students`). Students only see slots that are not full and haven't started.
+
+### Error format
+
+Errors follow FastAPI's shape: `{"detail": "message"}`, or a list of validation errors for `422`. The frontend turns either into a readable string with `getErrorMessage(err)` from [api.js](frontend/src/services/api.js), which is what you should use when adding new calls.
 
 ---
+
+## 🔌 API reference
+
+All endpoints are prefixed with `/api`. Interactive docs: http://localhost:8000/docs.
+
+### Auth
+
+| Method | Endpoint | Access | Body / notes |
+|--------|----------|--------|--------------|
+| POST | `/auth/register` | public | `{ email, password (≥8), first_name, last_name, role: "student"\|"professor", department? }` |
+| POST | `/auth/login` | public | `{ email, password }` (JSON, not form data) |
+| GET | `/auth/profile` | any user | Current user |
 
 ### Professors
 
-| Method | Endpoint | Access | Description |
-|----------|----------|---------|-------------|
-| GET | `/api/professors` | Authenticated | List all professors |
-| GET | `/api/professors/{id}/slots` | Authenticated | Get available slots |
-| GET | `/api/professors/me/slots` | Professor | View own slots |
-| POST | `/api/professors/me/slots` | Professor | Create slot |
-| DELETE | `/api/professors/me/slots/{id}` | Professor | Delete slot |
-| GET | `/api/professors/me/bookings` | Professor | View bookings |
-
----
+| Method | Endpoint | Access | Notes |
+|--------|----------|--------|-------|
+| GET | `/professors` | any user | List professors |
+| GET | `/professors/{id}/slots` | any user | That professor's upcoming, not-full slots |
+| GET | `/professors/me/slots` | professor | All your slots |
+| POST | `/professors/me/slots` | professor | `{ start_time, end_time, location, max_students?, notes? }` |
+| DELETE | `/professors/me/slots/{id}` | professor | **Also deletes the slot's bookings** |
+| GET | `/professors/me/bookings` | professor | Bookings on your slots, including student name |
 
 ### Bookings
 
-| Method | Endpoint | Access | Description |
-|----------|----------|---------|-------------|
-| GET | `/api/bookings/my` | Student | View personal bookings |
-| POST | `/api/bookings` | Student | Create booking |
-| DELETE | `/api/bookings/{id}` | Authenticated | Cancel booking |
+| Method | Endpoint | Access | Notes |
+|--------|----------|--------|-------|
+| GET | `/bookings/my` | student | Your bookings, newest first |
+| POST | `/bookings` | student | `{ slot_id, notes? }` |
+| DELETE | `/bookings/{id}` | booking's student, or the slot's professor | Marks the booking `cancelled`; it stays in history |
+
+### Try it with curl
+
+```bash
+# Register and grab the token (requires jq)
+TOKEN=$(curl -s -X POST localhost:8000/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"prof@uni.edu","password":"password123","first_name":"Ada","last_name":"Lovelace","role":"professor","department":"CS"}' \
+  | jq -r .token)
+
+# Create a slot
+curl -X POST localhost:8000/api/professors/me/slots \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+  -d '{"start_time":"2030-01-15T14:00:00Z","end_time":"2030-01-15T14:30:00Z","location":"Room 301"}'
+```
+
+> Swagger's **Authorize** button sends a form-encoded login, which this API doesn't accept. To call protected endpoints from `/docs`, use curl/Postman with the token from the login response instead.
 
 ---
 
-## 🗄️ Database Schema
-
-### Users
-
-| Field | Type | Description |
-|---------|------|-------------|
-| id | PK | Auto Increment |
-| email | String | Unique |
-| hashed_password | String | bcrypt hashed password |
-| first_name | String | Required |
-| last_name | String | Required |
-| role | Enum | student / professor |
-| department | String | Professor only |
-
----
-
-### Office Hours
-
-| Field | Type | Description |
-|---------|------|-------------|
-| id | PK | Auto Increment |
-| professor_id | FK | User reference |
-| start_time | DateTime | Slot start |
-| end_time | DateTime | Slot end |
-| location | String | Office location |
-| max_students | Integer | Capacity |
-| is_booked | Boolean | Availability |
-
----
-
-### Bookings
-
-| Field | Type | Description |
-|---------|------|-------------|
-| id | PK | Auto Increment |
-| student_id | FK | Student reference |
-| office_hour_id | FK | Office hour reference |
-| status | Enum | confirmed / cancelled |
-| notes | Text | Optional discussion topic |
-| created_at | DateTime | Timestamp |
-
----
-
-## 🎨 Frontend Features
-
-- JWT-based authentication
-- Auto-login using stored token
-- Protected routes
-- Role-based UI rendering
-- Real-time slot availability updates
-- Appointment booking modal
-- Responsive navigation
-- Professor scheduling dashboard
-- Student booking history
-- 🌙 Dark Mode toggle
-- 💾 Theme persistence using LocalStorage
-- 🔄 Automatic theme restoration after refresh
-- 📱 Mobile-first responsive design
-- ⚡ Fast Vite-powered development experience
-
----
-
-## 🔒 Security Features
-
-| Feature | Implementation |
-|----------|---------------|
-| Password Hashing | bcrypt |
-| Authentication | JWT Tokens |
-| Authorization | Role-Based Access Control |
-| Input Validation | Pydantic Models |
-| Conflict Prevention | Booking overlap validation |
-| Database Protection | SQLAlchemy ORM |
-| Session Security | Token expiration |
-
----
-
-## 🔐 Authentication Flow
+## 🗄️ Data model
 
 ```text
-┌─────────┐     Register/Login      ┌─────────┐
-│Frontend │ ──────────────────────► │ Backend │
-│ (React) │ ◄──── JWT Token ──────  │ FastAPI │
-└────┬────┘                         └────┬────┘
-     │                                   │
-     │ Store token in localStorage       │
-     │                                   │
-     │ Send Authorization Header         │
-     ▼                                   ▼
-┌─────────────────────────────────────────┐
-│            Protected Routes             │
-│      JWT Validation via Dependencies    │
-└─────────────────────────────────────────┘
+users 1 ──< office_hours 1 ──< bookings >── 1 users
+(professor)                                 (student)
 ```
+
+**users**: `id`, `email` (unique), `hashed_password`, `first_name`, `last_name`, `role` (`student`/`professor`), `department` (professors only)
+
+**office_hours**: `id`, `professor_id → users`, `start_time`, `end_time` (UTC), `location`, `max_students` (default 1), `is_booked` (= full), `notes`
+
+**bookings**: `id`, `student_id → users`, `office_hour_id → office_hours`, `status` (`confirmed`/`cancelled`), `notes`, `created_at` (UTC)
+
+Computed fields in responses (`duration_minutes`, `current_bookings`, `professor_name`, `student_name`, …) are Python `@property`s on the models in [backend/app/models/](backend/app/models/).
 
 ---
 
-## 🧪 Development Tips
+## 🛠️ Development guide
 
-### Backend
+### Adding an API endpoint
+
+1. **Schema:** add request/response models in `backend/app/schemas/` with `model_config = ConfigDict(from_attributes=True)` for ORM output.
+2. **Route:** add the function in the matching `backend/app/routers/*.py`, using `Depends(require_student)` / `Depends(require_professor)` / `Depends(get_current_user)` for auth.
+   In `professors.py`, keep fixed paths like `/me/...` **above** `/{professor_id}/...`, or FastAPI will match `"me"` as an ID.
+3. **New router file?** Export it in `routers/__init__.py` and register it in `main.py`.
+4. **Frontend:** add a function to the relevant `frontend/src/services/*Service.js`, then call it from a hook or page and show errors with `getErrorMessage`.
+
+### Database changes
+
+There are no migrations yet. `Base.metadata.create_all()` creates **missing tables** on startup but **does not alter existing ones**. After changing a model during development, either:
+
+- **SQLite:** delete the `.db` file and restart, or
+- **PostgreSQL:** `dropdb office_hours && createdb office_hours`, then restart.
+
+`alembic` is already in `requirements.txt` if you want to add proper migrations.
+
+### Working on the UI without the backend
+
+Set `MOCK_MODE = true` at the top of [frontend/src/services/api.js](frontend/src/services/api.js) to serve canned data for the main screens.
+
+### Production build
 
 ```bash
-uvicorn app.main:app --reload
+cd frontend && npm run build     # output in frontend/dist/
+cd backend && uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-### Frontend
+Before deploying: set a strong `SECRET_KEY`, point `DATABASE_URL` at PostgreSQL, and update CORS `allow_origins` in `main.py`.
 
-```bash
-npm run dev
-```
+### Tests
 
-### Useful Tools
-
-- Swagger UI (`/docs`)
-- ReDoc (`/redoc`)
-- Postman
-- pgAdmin
-- DB Browser for SQLite
+There is no automated test suite yet. Use `/docs` or the curl examples above. For backend tests, add `httpx` and `pytest` and use `fastapi.testclient.TestClient` with `DATABASE_URL=sqlite:///./test.db`.
 
 ---
 
 ## 🐛 Troubleshooting
 
-| Issue | Solution |
-|---------|----------|
-| vite: command not found | Run `npm install` |
-| Module not found | Verify file paths |
-| Network Error | Ensure backend is running |
-| 422 Unprocessable Entity | Verify request payload |
-| bcrypt/passlib errors | Install compatible bcrypt version |
-| Database does not exist | Create database manually |
-| Python 3.14 issues | Use Python 3.11–3.13 |
-
----
-
-## 📸 Screenshots
-
-| Student Dashboard | Professor Dashboard |
-|------------------|--------------------|
-| `docs/screenshots/student.png` | `docs/screenshots/professor.png` |
+| Symptom | Fix |
+|---------|-----|
+| `Network Error` in the browser | Backend isn't running on port 8000, or the frontend isn't on `localhost:3000` (CORS) |
+| `database "office_hours" does not exist` | `createdb office_hours`, or switch to SQLite |
+| `password authentication failed` | Fix the user/password in `DATABASE_URL` |
+| `AttributeError: module 'bcrypt' has no attribute '__about__'` or bcrypt `ValueError` | Install the pinned version: `pip install bcrypt==4.0.1` |
+| `pip install` tries to compile Rust / `pydantic-core` | Use Python 3.11 or 3.12 |
+| Column missing / `no such column` after editing a model | Reset the database (see [Database changes](#database-changes)) |
+| `422 Unprocessable Entity` | Request body doesn't match the schema; the `detail` field says which field |
+| Logged out unexpectedly | JWT expired (`ACCESS_TOKEN_EXPIRE_MINUTES`) or `SECRET_KEY` changed |
+| `vite: command not found` | Run `npm install` in `frontend/` |
 
 ---
 
 ## 🤝 Contributing
 
-1. Fork the repository
-2. Create a feature branch
-
-```bash
-git checkout -b feature/amazing-feature
-```
-
-3. Commit changes
-
-```bash
-git commit -m "Add amazing feature"
-```
-
-4. Push changes
-
-```bash
-git push origin feature/amazing-feature
-```
-
-5. Open a Pull Request
+1. Fork the repo and create a branch: `git checkout -b feature/my-feature`
+2. Make your changes, then check both apps still start and `npm run build` passes
+3. Commit with a clear message and open a Pull Request against `main`
 
 ---
 
-## 👨‍💻 Author
+## 👨‍💻 Authors
 
-**Tonmoy Chandra Mudi**
-
-## 👨‍💻 Contributor
-
-**Masud Ibn Musa**
-
-Github Link https://github.com/masudibnmusa
-
-Built using React, FastAPI, PostgreSQL, SQLAlchemy, and Tailwind CSS.
-
----
+- **Tonmoy Chandra Mudi**: author
+- **Masud Ibn Musa**: contributor ([GitHub](https://github.com/masudibnmusa))
 
 ## 📜 License
 
-Distributed under the **MIT License**.
-
-Feel free to use, modify, and distribute this project.
-
----
-
-## 🙏 Acknowledgments
-
-- FastAPI
-- React
-- Tailwind CSS
-- SQLAlchemy
-- PostgreSQL
-- Vite
+[MIT](LICENSE) © 2026 Tonmoy Chandra Mudi

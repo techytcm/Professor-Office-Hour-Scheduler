@@ -5,15 +5,16 @@ import { X, Calendar, Clock, AlertCircle } from 'lucide-react'
 const BookingModal = ({ slot, professor, onConfirm, onClose }) => {
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleConfirm = async () => {
     setLoading(true)
+    setError('')
     try {
       await onConfirm(slot.id, notes)
       onClose()
     } catch (err) {
-      // Error handled by parent
-    } finally {
+      setError(err.message || 'Failed to create booking')
       setLoading(false)
     }
   }
@@ -41,7 +42,7 @@ const BookingModal = ({ slot, professor, onConfirm, onClose }) => {
             <Clock className="text-primary-600" size={20} />
             <div>
               <p className="text-sm text-gray-500">Duration</p>
-              <p className="font-medium">{slot.duration_minutes || 30} minutes</p>
+              <p className="font-medium">{slot.duration_minutes || 30} minutes · {slot.location}</p>
             </div>
           </div>
 
@@ -77,6 +78,10 @@ const BookingModal = ({ slot, professor, onConfirm, onClose }) => {
             Please arrive on time. Cancel at least 2 hours in advance if you can't make it.
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{error}</div>
+        )}
 
         <div className="flex gap-3">
           <button onClick={onClose} className="btn-secondary flex-1">

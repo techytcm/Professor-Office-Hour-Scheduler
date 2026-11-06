@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { professorService } from '../../services/professorService.js'
+import { bookingService } from '../../services/bookingService.js'
+import { getErrorMessage } from '../../services/api.js'
 import BookingCard from '../../components/Booking/BookingCard.jsx'
-import { Users, Filter } from 'lucide-react'
+import { Users } from 'lucide-react'
 
 const StudentBookings = () => {
   const [bookings, setBookings] = useState([])
@@ -21,6 +23,16 @@ const StudentBookings = () => {
     }
     fetchBookings()
   }, [])
+
+  const handleCancel = async (bookingId) => {
+    if (!window.confirm("Cancel this student's booking?")) return
+    try {
+      await bookingService.cancelBooking(bookingId)
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b))
+    } catch (err) {
+      window.alert(getErrorMessage(err, 'Failed to cancel booking'))
+    }
+  }
 
   const filteredBookings = bookings.filter(booking => {
     const isUpcoming = new Date(booking.start_time) > new Date()
@@ -80,6 +92,7 @@ const StudentBookings = () => {
               key={booking.id} 
               booking={booking} 
               userRole="professor"
+              onCancel={handleCancel}
             />
           ))}
         </div>

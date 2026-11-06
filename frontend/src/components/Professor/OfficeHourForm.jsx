@@ -1,26 +1,29 @@
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { format } from 'date-fns'
 import { validateFutureDate, validateTimeSlot } from '../../utils/validators.js'
 import { Plus, Calendar, Clock, MapPin } from 'lucide-react'
 
 const OfficeHourForm = ({ onSubmit }) => {
   const { register, handleSubmit, watch, reset, formState: { errors } } = useForm()
   const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
   const handleFormSubmit = async (data) => {
     setLoading(true)
+    setSubmitError('')
     try {
+      // Inputs are in the professor's local time; send UTC to the API
       await onSubmit({
-        date: data.date,
-        start_time: `${data.date}T${data.start_time}`,
-        end_time: `${data.date}T${data.end_time}`,
+        start_time: new Date(`${data.date}T${data.start_time}`).toISOString(),
+        end_time: new Date(`${data.date}T${data.end_time}`).toISOString(),
         location: data.location,
         max_students: parseInt(data.max_students) || 1,
-        notes: data.notes
+        notes: data.notes || null
       })
       reset()
     } catch (err) {
-      // Error handled by parent
+      setSubmitError(err.message || 'Failed to create slot')
     } finally {
       setLoading(false)
     }
@@ -34,6 +37,10 @@ const OfficeHourForm = ({ onSubmit }) => {
       </h2>
 
       <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
+        {submitError && (
+          <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg text-sm">{submitError}</div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
@@ -43,7 +50,7 @@ const OfficeHourForm = ({ onSubmit }) => {
                 type="date"
                 {...register('date', { 
                   required: 'Date is required',
-                  validate: value => validateFutureDate(value) || 'Date must be in the future'
+                  validate: value => value >= format(new Date(), 'yyyy-MM-dd') || 'Date cannot be in the past'
                 })}
                 className="input-field pl-10"
               />
@@ -72,7 +79,13 @@ const OfficeHourForm = ({ onSubmit }) => {
               <Clock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input
                 type="time"
-                {...register('start_time', { required: 'Start time is required' })}
+                {...register('start_time', {
+                  required: 'Start time is required',
+                  validate: value => {
+                    const date = watch('date')
+                    return !date || validateFutureDate(`${date}T${value}`) || 'Start time must be in the future'
+                  }
+                })}
                 className="input-field pl-10"
               />
             </div>

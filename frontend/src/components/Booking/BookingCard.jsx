@@ -3,7 +3,7 @@ import { Calendar, Clock, User, MapPin, Trash2 } from 'lucide-react'
 
 const BookingCard = ({ booking, onCancel, userRole = 'student' }) => {
   const isExpired = isSlotExpired(booking.start_time)
-  const canCancel = !isExpired && booking.status !== 'cancelled'
+  const canCancel = Boolean(onCancel) && !isExpired && booking.status !== 'cancelled'
 
   return (
     <div className={`card ${booking.status === 'cancelled' ? 'opacity-60' : ''}`}>
@@ -24,7 +24,7 @@ const BookingCard = ({ booking, onCancel, userRole = 'student' }) => {
             <span className="text-sm">
               {userRole === 'student' 
                 ? `Prof. ${booking.professor_name}` 
-                : `${booking.student_name}`}
+                : `${booking.student_name || 'Student'}`}
             </span>
           </div>
           
@@ -44,7 +44,7 @@ const BookingCard = ({ booking, onCancel, userRole = 'student' }) => {
               ? 'bg-red-100 text-red-700'
               : 'bg-yellow-100 text-yellow-700'
           }`}>
-            {booking.status || 'Confirmed'}
+            {booking.status || 'confirmed'}
           </span>
           
           {canCancel && (

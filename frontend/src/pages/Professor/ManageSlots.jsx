@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useOfficeHours } from '../../hooks/useOfficeHours.js'
 import OfficeHourForm from '../../components/Professor/OfficeHourForm.jsx'
-import { formatDateTime, formatTime } from '../../utils/dateUtils.js'
+import { formatDate, formatTime } from '../../utils/dateUtils.js'
 import { Plus, Trash2, Calendar, Clock } from 'lucide-react'
 
 const ManageSlots = () => {
@@ -14,8 +14,12 @@ const ManageSlots = () => {
   }
 
   const handleDelete = async (slotId) => {
-    if (window.confirm('Are you sure you want to delete this slot? Any existing bookings will be cancelled.')) {
-      await deleteSlot(slotId)
+    if (window.confirm('Are you sure you want to delete this slot? Any bookings for it will be removed.')) {
+      try {
+        await deleteSlot(slotId)
+      } catch (err) {
+        window.alert(err.message)
+      }
     }
   }
 
@@ -64,12 +68,12 @@ const ManageSlots = () => {
                 </tr>
               </thead>
               <tbody>
-                {slots.sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).map(slot => (
+                {[...slots].sort((a, b) => new Date(a.start_time) - new Date(b.start_time)).map(slot => (
                   <tr key={slot.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <Calendar size={16} className="text-gray-400" />
-                        <span className="text-sm">{formatDateTime(slot.start_time).split(',')[0]}</span>
+                        <span className="text-sm">{formatDate(slot.start_time)}</span>
                       </div>
                     </td>
                     <td className="py-3 px-4">
@@ -87,7 +91,7 @@ const ManageSlots = () => {
                           ? 'bg-red-100 text-red-700' 
                           : 'bg-green-100 text-green-700'
                       }`}>
-                        {slot.is_booked ? 'Booked' : 'Available'}
+                        {slot.is_booked ? 'Full' : 'Available'}
                       </span>
                     </td>
                     <td className="py-3 px-4 text-sm">

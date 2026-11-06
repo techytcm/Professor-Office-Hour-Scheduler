@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { professorService } from '../services/professorService.js'
+import { getErrorMessage } from '../services/api.js'
 
 export const useOfficeHours = (professorId = null) => {
   const [slots, setSlots] = useState([])
@@ -15,7 +16,7 @@ export const useOfficeHours = (professorId = null) => {
       setSlots(response.data)
       setError(null)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch slots')
+      setError(getErrorMessage(err, 'Failed to fetch slots'))
     } finally {
       setLoading(false)
     }
@@ -24,10 +25,10 @@ export const useOfficeHours = (professorId = null) => {
   const createSlot = useCallback(async (slotData) => {
     try {
       const response = await professorService.createSlot(slotData)
-      setSlots(prev => [...prev, response.data])
+      setSlots(prev => [...prev, response.data].sort((a, b) => new Date(a.start_time) - new Date(b.start_time)))
       return response.data
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Failed to create slot')
+      throw new Error(getErrorMessage(err, 'Failed to create slot'))
     }
   }, [])
 
@@ -36,7 +37,7 @@ export const useOfficeHours = (professorId = null) => {
       await professorService.deleteSlot(slotId)
       setSlots(prev => prev.filter(s => s.id !== slotId))
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Failed to delete slot')
+      throw new Error(getErrorMessage(err, 'Failed to delete slot'))
     }
   }, [])
 

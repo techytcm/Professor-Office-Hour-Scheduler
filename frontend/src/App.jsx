@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './hooks/useAuth.js'
 import Navbar from './components/Layout/Navbar.jsx'
 import Sidebar from './components/Layout/Sidebar.jsx'
@@ -13,6 +13,7 @@ import Register from './pages/Auth/Register.jsx'
 import StudentDashboard from './pages/Student/Dashboard.jsx'
 import ProfessorList from './pages/Student/ProfessorList.jsx'
 import MyBookings from './pages/Student/MyBookings.jsx'
+import BookOfficeHour from './pages/Student/BookOfficeHour.jsx'
 
 // Professor Pages
 import ProfessorDashboard from './pages/Professor/Dashboard.jsx'
@@ -20,18 +21,19 @@ import ManageSlots from './pages/Professor/ManageSlots.jsx'
 import StudentBookings from './pages/Professor/StudentBookings.jsx'
 
 function App() {
-  const { user } = useAuth()
+  const { user, loading } = useAuth()
+  const homePath = user?.role === 'professor' ? '/professor/dashboard' : '/student/dashboard'
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
-      <div className="flex flex-1">
+      <div className="flex flex-1 pt-[73px]">
         {user && <Sidebar />}
         <main className={`flex-1 p-6 ${user ? 'ml-64' : ''}`}>
           <Routes>
             {/* Public Routes */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={user ? <Navigate to={homePath} replace /> : <Login />} />
+            <Route path="/register" element={user ? <Navigate to={homePath} replace /> : <Register />} />
             
             {/* Student Routes */}
             <Route path="/student/dashboard" element={
@@ -42,6 +44,11 @@ function App() {
             <Route path="/student/professors" element={
               <ProtectedRoute allowedRoles={['student']}>
                 <ProfessorList />
+              </ProtectedRoute>
+            } />
+            <Route path="/student/book/:professorId" element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <BookOfficeHour />
               </ProtectedRoute>
             } />
             <Route path="/student/bookings" element={
@@ -69,11 +76,9 @@ function App() {
             
             {/* Default Redirect */}
             <Route path="/" element={
-              user ? (
-                user.role === 'professor' ? 
-                  <ProfessorDashboard /> : <StudentDashboard />
-              ) : <Login />
+              loading ? null : <Navigate to={user ? homePath : '/login'} replace />
             } />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </main>
       </div>

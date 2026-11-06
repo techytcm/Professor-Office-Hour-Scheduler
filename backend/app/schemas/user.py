@@ -1,10 +1,10 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional, Literal
 
 class UserBase(BaseModel):
     email: EmailStr
-    first_name: str
-    last_name: str
+    first_name: str = Field(..., min_length=1)
+    last_name: str = Field(..., min_length=1)
 
 class UserCreate(UserBase):
     password: str = Field(..., min_length=8)
@@ -16,13 +16,12 @@ class UserLogin(BaseModel):
     password: str
 
 class UserResponse(UserBase):
+    model_config = ConfigDict(from_attributes=True)
+
     id: int
     role: str
     name: str
     department: Optional[str] = None
-    
-    class Config:
-        from_attributes = True  # ← Pydantic v2 syntax
 
 class Token(BaseModel):
     access_token: str

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { bookingService } from '../services/bookingService.js'
+import { getErrorMessage } from '../services/api.js'
 
-export const useBookings = () => {   // ← must be `useBookings` (not `useBooking`)
+export const useBookings = () => {
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -13,28 +14,29 @@ export const useBookings = () => {   // ← must be `useBookings` (not `useBooki
       setBookings(response.data)
       setError(null)
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to fetch bookings')
+      setError(getErrorMessage(err, 'Failed to fetch bookings'))
     } finally {
       setLoading(false)
     }
   }, [])
 
-  const createBooking = useCallback(async (slotId) => {
+  const createBooking = useCallback(async (slotId, notes) => {
     try {
-      const response = await bookingService.createBooking(slotId)
+      const response = await bookingService.createBooking(slotId, notes)
       setBookings(prev => [...prev, response.data])
       return response.data
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Failed to create booking')
+      throw new Error(getErrorMessage(err, 'Failed to create booking'))
     }
   }, [])
 
   const cancelBooking = useCallback(async (bookingId) => {
     try {
       await bookingService.cancelBooking(bookingId)
-      setBookings(prev => prev.filter(b => b.id !== bookingId))
+      // Keep it in the list so it shows under the "Cancelled" tab
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'cancelled' } : b))
     } catch (err) {
-      throw new Error(err.response?.data?.message || 'Failed to cancel booking')
+      throw new Error(getErrorMessage(err, 'Failed to cancel booking'))
     }
   }, [])
 

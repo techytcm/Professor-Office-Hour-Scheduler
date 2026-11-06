@@ -192,7 +192,9 @@ realApi.interceptors.request.use((config) => {
 realApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // A 401 from login/register just means bad credentials, so let the form show it
+    const isAuthRequest = error.config?.url?.startsWith('/auth/')
+    if (error.response?.status === 401 && !isAuthRequest) {
       localStorage.removeItem('token')
       localStorage.removeItem('user')
       window.location.href = '/login'
@@ -203,3 +205,13 @@ realApi.interceptors.response.use(
 
 const api = MOCK_MODE ? mockApi : realApi
 export default api
+
+// FastAPI puts errors in `detail` (a string, or a list of validation errors for 422)
+export const getErrorMessage = (err, fallback = 'Something went wrong') => {
+  const detail = err?.response?.data?.detail
+  if (typeof detail === 'string') return detail
+  if (Array.isArray(detail) && detail.length > 0) {
+    return detail.map(d => d.msg?.replace(/^Value error, /, '')).filter(Boolean).join('; ') || fallback
+  }
+  return fallback
+}
